@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Conjunto Descobrir em tamanho real</title>
-<meta name="description" content="Veja a mesa e a cadeira do Conjunto Descobrir em tamanho real no seu espaço, com realidade aumentada.">
+<meta name="description" content="Veja a mesa e a cadeira do Conjunto Descobrir em tamanho real no seu espaço e aprenda a montar, passo a passo, com realidade aumentada.">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -19,6 +19,7 @@
     --vermelho: #D62828;
     --azul: #1F4FBF;
     --amarelo-tinta: #F2B705;
+    --lilas: #B2A1D6;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
@@ -32,8 +33,18 @@
   header h1 { font-size: 1.35rem; font-weight: 700; color: var(--marinho); line-height: 1.15; }
   header p { font-size: 0.9rem; color: var(--texto-2); }
 
+  /* alternância entre ver montado e o passo a passo */
+  .modos { display: flex; gap: 6px; margin: 4px 16px 8px; padding: 4px; background: #E6E2D9; border-radius: 999px; max-width: 420px; }
+  .modos button {
+    flex: 1; border: 0; border-radius: 999px; padding: 9px 10px; background: transparent;
+    font: 600 0.9rem "Poppins", sans-serif; color: var(--texto-2); cursor: pointer;
+  }
+  .modos button[aria-pressed="true"] { background: #fff; color: var(--marinho); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }
+
   model-viewer {
-    flex: 1; width: 100%; min-height: 55vh;
+    flex: 1; width: 100%; min-height: 62vh; position: relative;
+  }
+  .montando model-viewer { min-height: 72vh;
     background: radial-gradient(ellipse at 50% 70%, #ffffff 0%, var(--fundo) 70%);
     --poster-color: transparent;
   }
@@ -43,8 +54,56 @@
     padding: 14px 26px; font: 600 1rem "Poppins", sans-serif;
     box-shadow: 0 6px 18px rgba(36, 56, 77, 0.3); cursor: pointer; white-space: nowrap;
   }
+  .montando .ar-botao { top: 12px; bottom: auto; right: 12px; left: auto; transform: none; padding: 10px 16px; font-size: 0.85rem; }
+
+  /* cartão do passo: fica dentro do model-viewer, então aparece também no modo AR */
+  /* barra compacta: número, nome curto e botões; a explicação abre ao tocar no nome */
+  .passo {
+    display: none; position: absolute; left: 8px; right: 8px; bottom: 8px; max-width: 520px; margin: 0 auto;
+    background: rgba(255, 255, 255, 0.94); border-radius: 14px; padding: 7px 8px 8px;
+    box-shadow: 0 4px 14px rgba(36, 56, 77, 0.16);
+  }
+  .montando .passo { display: block; }
+  .barra { display: flex; gap: 3px; margin: 0 2px 7px; }
+  .barra i { flex: 1; height: 3px; border-radius: 2px; background: #E1DCD2; }
+  .barra i.feito { background: var(--lilas); }
+  .barra i.atual { background: var(--marinho); }
+  .linha { display: flex; align-items: center; gap: 6px; }
+  /* no passo "destro ou canhoto": ver a troca com o tampo na altura de baixo ou na de cima */
+  .opcoes { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 7px; }
+  .opcoes[hidden], .grupo[hidden] { display: none; }
+  .grupo { flex: 1 1 auto; display: flex; gap: 2px; padding: 3px; background: #ECE8DF; border-radius: 999px; }
+  .grupo button {
+    flex: 1; border: 0; border-radius: 999px; padding: 6px 4px; background: transparent; cursor: pointer;
+    font: 600 0.74rem "Poppins", sans-serif; color: var(--texto-2); white-space: nowrap;
+  }
+  .grupo button[aria-pressed="true"] { background: #fff; color: var(--vermelho); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+  .passo .num {
+    flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--marinho); color: #fff;
+    display: grid; place-items: center; font-weight: 700; font-size: 0.85rem;
+  }
+  .passo .num.cresce { background: var(--vermelho); }
+  .passo .titulo {
+    flex: 1; min-width: 0; border: 0; background: transparent; text-align: left; cursor: pointer; padding: 2px 0;
+    font: 600 0.88rem/1.2 "Poppins", sans-serif; color: var(--marinho);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .passo .titulo small { font-weight: 500; font-size: 0.72rem; color: var(--texto-2); margin-left: 4px; }
+  .passo .titulo .i {
+    display: inline-grid; place-items: center; width: 16px; height: 16px; margin-left: 4px; border-radius: 50%;
+    border: 1.5px solid currentColor; font-size: 0.62rem; font-weight: 700; vertical-align: 1px;
+  }
+  .passo p { margin: 7px 2px 1px; font-size: 0.82rem; line-height: 1.4; }
+  .passo p[hidden] { display: none; }
+  .linha .bt {
+    flex: none; width: 38px; height: 38px; border: 0; border-radius: 10px; cursor: pointer;
+    font: 600 0.95rem "Poppins", sans-serif; background: #ECE8DF; color: var(--marinho);
+  }
+  .linha .proximo { width: 46px; background: var(--marinho); color: #fff; }
+  .linha .bt:disabled { opacity: 0.4; cursor: default; }
 
   section { padding: 14px 16px 6px; max-width: 640px; }
+  section h3 { font-size: 1rem; font-weight: 600; color: var(--marinho); margin: 6px 0 6px; }
   .medidas { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 10px; }
   .medidas div { font-size: 0.85rem; color: var(--texto-2); }
   .medidas b { display: block; font-size: 1.25rem; font-weight: 600; color: var(--marinho); }
@@ -53,6 +112,16 @@
   .medidas div:nth-child(2)::before { background: var(--azul); }
   .medidas div:nth-child(3)::before { background: var(--amarelo-tinta); }
   ol { padding-left: 1.2em; font-size: 0.95rem; line-height: 1.55; }
+  .lista-passos { list-style: none; padding: 0; counter-reset: p; }
+  .lista-passos li { counter-increment: p; }
+  .lista-passos button {
+    width: 100%; text-align: left; border: 0; background: transparent; cursor: pointer;
+    display: flex; gap: 10px; align-items: baseline; padding: 6px 0;
+    font: 400 0.92rem/1.45 "Poppins", sans-serif; color: var(--texto);
+  }
+  .lista-passos button::before { content: counter(p); flex: none; width: 1.4em; font-weight: 700; color: var(--marinho); }
+  .lista-passos b { font-weight: 600; color: var(--marinho); }
+  .nota { font-size: 0.8rem; color: var(--texto-2); margin-top: 6px; }
   footer {
     margin-top: 14px; background: var(--amarelo); color: #201D21;
     padding: 12px 16px; font-size: 0.8rem; line-height: 1.4;
@@ -68,18 +137,52 @@
     </div>
   </header>
 
-  <model-viewer src="descobrir.glb" alt="Mesa e cadeira infantis do Conjunto Descobrir"
+  <div class="modos" role="group" aria-label="Modo de visualização">
+    <button type="button" id="ver-montado" aria-pressed="true">Montado</button>
+    <button type="button" id="ver-montagem" aria-pressed="false">Como montar</button>
+  </div>
+
+  <model-viewer id="mv" src="descobrir.glb" alt="Mesa e cadeira infantis do Conjunto Descobrir"
                 ar ar-modes="webxr scene-viewer quick-look" ar-scale="fixed" ar-placement="floor"
                 camera-controls touch-action="pan-y" camera-orbit="35deg 72deg auto"
                 shadow-intensity="1" shadow-softness="0.8" exposure="0.85" tone-mapping="neutral" environment-image="neutral"
-                interaction-prompt="auto">
+                interaction-prompt="auto" interpolation-decay="120">
     <button slot="ar-button" class="ar-botao">Ver no meu espaço</button>
+
+    <div class="passo" aria-live="polite">
+      <div class="opcoes" id="opcoes" hidden>
+        <div class="grupo" role="group" aria-label="Altura da mesa">
+          <button type="button" data-mesa="baixa" aria-pressed="true">Mesa baixa</button>
+          <button type="button" data-mesa="alta" aria-pressed="false">Mesa alta</button>
+        </div>
+        <div class="grupo" id="grupo-mao" role="group" aria-label="Mão da criança">
+          <button type="button" data-mao="destro" aria-pressed="false">Destro</button>
+          <button type="button" data-mao="canhoto" aria-pressed="true">Canhoto</button>
+        </div>
+        <div class="grupo" id="grupo-nivel" role="group" aria-label="Inclinação">
+          <button type="button" data-nivel="0" aria-pressed="false">Nível 0</button>
+          <button type="button" data-nivel="1" aria-pressed="false">Nível 1</button>
+          <button type="button" data-nivel="2" aria-pressed="true">Nível 2</button>
+        </div>
+      </div>
+      <div class="barra" id="passo-barra"></div>
+      <div class="linha">
+        <div class="num" id="passo-num">1</div>
+        <button type="button" class="titulo" id="passo-info" aria-expanded="false" aria-controls="passo-texto">
+          <span id="passo-titulo"></span><small id="passo-de">1/11</small><span class="i" aria-hidden="true">i</span>
+        </button>
+        <button type="button" class="bt" id="anterior" aria-label="Passo anterior">◀</button>
+        <button type="button" class="bt" id="repetir" aria-label="Repetir este passo">↻</button>
+        <button type="button" class="bt proximo" id="proximo" aria-label="Próximo passo">▶</button>
+      </div>
+      <p id="passo-texto" hidden></p>
+    </div>
   </model-viewer>
 
   <section>
     <div class="medidas">
-      <div><b>117 cm</b>largura</div>
-      <div><b>62 cm</b>profundidade da mesa</div>
+      <div><b>118 cm</b>largura</div>
+      <div><b>64 cm</b>profundidade da mesa</div>
       <div><b>93 cm</b>altura</div>
     </div>
     <ol>
@@ -87,11 +190,136 @@
       <li>Aponte a câmera para o chão e mova o celular devagar.</li>
       <li>O conjunto aparece em tamanho real: dá para andar em volta.</li>
     </ol>
+
+    <h3>Como montar, sem ferramentas</h3>
+    <ol class="lista-passos" id="lista"></ol>
+    <p class="nota">Toque em um passo para ver a animação. No modo “Ver no meu espaço”, os botões continuam na tela: dá para montar o conjunto peça por peça no seu chão.</p>
   </section>
 
   <footer>
     Design de Mobiliário · Prof. Rodrigo Karam · FAE Centro Universitário · Parceria Quater<br>
     Agustin Nicolás Ferrari, Gabriel Henrique Moraes e Paulo Henrique Gonçalves
   </footer>
+
+<script>
+  // início de cada passo na animação "montagem" do descobrir.glb (s); de 22 a 36 s ficam as quatro trocas de lado do passo 10 e de 36 a 52 s a inclinação do passo 11
+  const PASSOS = [
+    { t: "Laterais da mesa", d: "Coloque as duas laterais verdes em pé, com as ranuras das bandejas viradas para trás.", cam: [30, 70, 2.7, [0, 0.46, -0.23]] },
+    { t: "Painéis azuis", d: "Encaixe os dois painéis ondulados de cima para baixo, nas ranuras de trás das laterais.", cam: [-35, 62, 2.7, [0, 0.46, -0.23]] },
+    { t: "Bandejas lilás", d: "Deslize as duas bandejas por trás até o fim das ranuras.", cam: [145, 62, 2.7, [0, 0.46, -0.23]] },
+    { t: "Travas", d: "Coloque as quatro travas de madeira: elas prendem as bandejas nos painéis.", cam: [150, 50, 2.4, [0, 0.46, -0.23]] },
+    { t: "Tampo", d: "Deslize o tampo pela frente, na ranura de baixo das laterais.", cam: [25, 65, 2.7, [0, 0.46, -0.23]] },
+    { t: "Prateleira", d: "Deslize a prateleira pela frente, na ranura de cima.", cam: [20, 60, 2.7, [0, 0.5, -0.23]] },
+    { t: "Laterais da cadeira", d: "Junte as duas laterais da cadeira e encaixe a barra de madeira embaixo, por trás.", cam: [50, 62, 2.6, [0, 0.25, 0.25]] },
+    { t: "Assento e encosto", d: "Deslize o assento pela frente e encaixe o encosto por cima.", cam: [75, 60, 2.6, [0, 0.25, 0.25]] },
+    { t: "Cresce com a criança", d: "Quando a criança crescer, afaste a cadeira e troque de ranura: o tampo sobe, a prateleira desce e o assento sobe.", cam: [40, 70, 3.4, [0, 0.45, 0]], cresce: true },
+    { t: "Destro ou canhoto", d: "Destro: porta-lápis à esquerda. Canhoto: à direita. Para trocar, afaste a cadeira, tire o tampo, vire-o de cabeça para baixo e encaixe de novo.", cam: [15, 66, 3.0, [0, 0.62, 0.05]], cresce: true,
+      // [início, fim, altura da câmera] de cada combinação mesa × mão
+      opcoes: { "baixa-canhoto": [25, 28.95, 0.45], "alta-canhoto": [22, 24.95, 0.62],
+                "alta-destro": [29, 31.95, 0.62], "baixa-destro": [32, 35.95, 0.45] }, grupos: ["mesa", "mao"] },
+    { t: "Mesa inclinada", d: "Levante a parte de trás do tampo: com o próprio peso ela encaixa na trava. Nível 0 é a mesa reta; nível 1, um pouco inclinada; nível 2, mais inclinada, boa para desenhar e ler.", cam: [55, 80, 3.0, [0, 0.5, -0.23]], cresce: true,
+      // nível 0 desce da 2ª trava até reto; nível 1 para na 1ª trava; nível 2 passa por ela e segue até a 2ª
+      opcoes: { "baixa-0": [44, 47.95, 0.45], "baixa-1": [36, 37.35, 0.45], "baixa-2": [36, 39.95, 0.45],
+                "alta-0": [48, 51.95, 0.65], "alta-1": [40, 41.35, 0.65], "alta-2": [40, 43.95, 0.65] },
+      grupos: ["mesa", "nivel"] },
+  ];
+  const INI = [0, 2, 4, 6, 8, 10, 12, 14, 16, 22, 36], INICIO = k => INI[k];   // k começa em 0
+  const FIM = k => (k === PASSOS.length - 1 ? 43.95 : INICIO(k + 1) - 0.05);
+  const MONTADO = FIM(7);                                      // tudo montado, na altura de baixo
+
+  const mv = document.getElementById("mv");
+  const $ = id => document.getElementById(id);
+  let atual = 0, parar = null, pronto = false, mesa = "baixa", mao = "canhoto", nivel = "2";
+
+  // barra de progresso e lista de passos
+  PASSOS.forEach((p, k) => {
+    $("passo-barra").appendChild(document.createElement("i"));
+    const li = document.createElement("li"), b = document.createElement("button");
+    b.type = "button"; b.innerHTML = `<span><b>${p.t}.</b> ${p.d}</span>`;
+    b.addEventListener("click", () => { modo(true); irPara(k); mv.scrollIntoView({ behavior: "smooth", block: "center" }); });
+    li.appendChild(b); $("lista").appendChild(li);
+  });
+
+  function mostrar(k) {
+    const p = PASSOS[k];
+    $("passo-num").textContent = k + 1;
+    $("passo-num").classList.toggle("cresce", !!p.cresce);
+    $("passo-de").textContent = `${k + 1}/${PASSOS.length}`;
+    $("passo-titulo").textContent = p.t;
+    $("passo-texto").textContent = p.d;
+    [...$("passo-barra").children].forEach((i, j) => i.className = j < k ? "feito" : j === k ? "atual" : "");
+    $("anterior").disabled = k === 0;
+    const ultimo = k === PASSOS.length - 1;
+    $("proximo").textContent = ultimo ? "✓" : "▶";
+    $("proximo").setAttribute("aria-label", ultimo ? "Ver montado" : "Próximo passo");
+  }
+
+  // em tela estreita (celular em pé) a câmera se afasta e o modelo sobe para não ficar atrás do cartão
+  function enquadrar([th, ph, r, [x, y, z]]) {
+    const asp = mv.clientWidth / mv.clientHeight, raio = r * Math.max(1.25, 0.95 / asp);
+    mv.cameraOrbit = `${th}deg ${ph}deg ${raio.toFixed(2)}m`;
+    mv.cameraTarget = `${x}m ${(y - raio * (asp < 1 ? 0.04 : 0.03)).toFixed(2)}m ${z}m`;
+  }
+
+  function irPara(k) {
+    atual = k; mostrar(k);
+    const grupos = PASSOS[k].grupos || [];
+    const valor = { mesa, mao, nivel };
+    const alt = PASSOS[k].opcoes && PASSOS[k].opcoes[grupos.map(g => valor[g]).join("-")];
+    $("opcoes").hidden = !alt;
+    $("grupo-mao").hidden = !grupos.includes("mao");
+    $("grupo-nivel").hidden = !grupos.includes("nivel");
+    const [th, ph, r, [x, y, z]] = PASSOS[k].cam;
+    enquadrar(alt ? [th, ph, r, [x, alt[2], z]] : PASSOS[k].cam);
+    if (!pronto) return;
+    mv.pause(); mv.currentTime = alt ? alt[0] : INICIO(k); parar = alt ? alt[1] : FIM(k);
+    mv.play({ repetitions: 1 });
+  }
+
+  function modo(montagem) {
+    document.body.classList.toggle("montando", montagem);
+    $("ver-montado").setAttribute("aria-pressed", !montagem);
+    $("ver-montagem").setAttribute("aria-pressed", montagem);
+    if (!montagem) {
+      parar = null;
+      if (pronto) { mv.pause(); mv.currentTime = MONTADO; }
+      mv.cameraOrbit = "35deg 72deg auto"; mv.cameraTarget = "auto auto auto";
+    }
+  }
+
+  mv.addEventListener("load", () => {
+    mv.animationName = "montagem";
+    // o model-viewer só aplica o tempo depois de trocar a animação no próximo quadro
+    setTimeout(() => {
+      mv.pause(); mv.currentTime = MONTADO; pronto = true;
+      if (document.body.classList.contains("montando")) irPara(atual);
+    }, 150);
+  });
+
+  // para a animação no fim do passo
+  (function vigia() {
+    if (parar !== null && mv.currentTime >= parar) { mv.pause(); mv.currentTime = parar; parar = null; }
+    requestAnimationFrame(vigia);
+  })();
+
+  $("ver-montado").addEventListener("click", () => modo(false));
+  $("ver-montagem").addEventListener("click", () => { modo(true); irPara(0); });
+  $("anterior").addEventListener("click", () => atual > 0 && irPara(atual - 1));
+  $("repetir").addEventListener("click", () => irPara(atual));
+  // cada toque mostra a troca até a opção escolhida (para canhoto ou de volta para destro)
+  document.querySelectorAll("#opcoes button").forEach(b => b.addEventListener("click", () => {
+    if (b.dataset.mesa) mesa = b.dataset.mesa;
+    else if (b.dataset.mao) mao = b.dataset.mao;
+    else nivel = b.dataset.nivel;
+    b.parentElement.querySelectorAll("button").forEach(o => o.setAttribute("aria-pressed", o === b));
+    irPara(atual);
+  }));
+  $("passo-info").addEventListener("click", () => {
+    const p = $("passo-texto"), abrir = p.hidden;
+    p.hidden = !abrir; $("passo-info").setAttribute("aria-expanded", abrir);
+  });
+  $("proximo").addEventListener("click", () => atual < PASSOS.length - 1 ? irPara(atual + 1) : modo(false));
+  mostrar(0);
+</script>
 </body>
 </html>
